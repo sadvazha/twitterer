@@ -1,0 +1,22 @@
+{
+    "name": "@twitterer/service-toolkit",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "express": "^4.21.2",
+        "pino": "^9.6.0"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.0",
+        "@types/node": "^22.10.10",
+        "@types/pino": "^7.0.5",
+        "@typescript-eslint/eslint-plugin": "^8.22.0",
+        "@typescript-eslint/parser": "^8.22.0",
+        "eslint": "^9.19.0",
+        "typescript": "^5.2.2"
+    }
+}

@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.10.0",
+    "service-toolkit": "file:../service-toolkit"
+  },
+  "name": "@twitterer/queue",
+  "version": "1.0.0",
+  "description": "Queue library",
+  "main": "dist/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sadvazha/twitterer.git"
+  },
+  "keywords": [
+    "twitterer"
+  ],
+  "author": "Zhanybek Sadvakassov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sadvazha/twitterer/issues"
+  },
+  "homepage": "https://github.com/sadvazha/twitterer#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.22.0",
+    "@typescript-eslint/parser": "^8.22.0",
+    "eslint": "^9.19.0"
+  }
+}

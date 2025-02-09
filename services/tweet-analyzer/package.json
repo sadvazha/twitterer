@@ -1,0 +1,39 @@
+{
+  "name": "tweet-analyzer",
+  "version": "1.0.0",
+  "description": "Analyzes tweets of users for marketing value",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev src/index.ts",
+    "lint": "eslint . --ext .ts",
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sadvazha/twitterer.git"
+  },
+  "keywords": [
+    "twitterer"
+  ],
+  "author": "Zhanybek Sadvakassov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sadvazha/twitterer/issues"
+  },
+  "homepage": "https://github.com/sadvazha/twitterer#readme",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "express": "^4.21.2",
+    "@twitterer/service-toolkit": "file:../libs/service-toolkit"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.21.0",
+    "@typescript-eslint/parser": "^8.21.0",
+    "eslint": "^9.19.0",
+    "typescript": "^5.7.3",
+    "@types/node": "^22.13.0"
+  }
+}
