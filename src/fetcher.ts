@@ -1,22 +1,16 @@
-import { Logger } from '@twitterer/service-toolkit'
+import { Logger } from './libs/service-toolkit'
 import { spawn } from 'child_process'
+import { DatabaseConnector } from './database_connector'
 
-
-type Tweet = {
-    text: string,
-    lang: string,
-    createdAt: string
-} & Record<string, any>
 
 export interface TweetFetcher {
-    getTweetStream(accountId: string): Promise<Tweet>
+    fetch(accountId: string): Promise<void>
 }
 
 export class TweetFetcherApify implements TweetFetcher {
-    private readonly apiToken: string
     private readonly actorId  = 'apidojo~tweet-scraper'
 
-    constructor(readonly logger: Logger, apiToken: string) {
+    constructor(readonly logger: Logger, readonly apiToken: string, readonly db: DatabaseConnector) {
         this.apiToken = apiToken
     }
 
@@ -29,6 +23,7 @@ export class TweetFetcherApify implements TweetFetcher {
         return new Promise((resolve, reject) => {
             const process = spawn(command, args)
             process.stdout.on('data', (data) => {
+                logger.info({ stdout: data.toString() }, "stdout stream")
                 response += data.toString()
             })
 
@@ -51,8 +46,9 @@ export class TweetFetcherApify implements TweetFetcher {
         })
     }
 
-    async getTweetStream(accountId: string): Promise<Tweet> {
+    async fetch(accountId: string): Promise<void> {
         try {
+            this.logger.info({ accountId }, 'Fetching tweets for account')
             const input = {
                 author: accountId,
                 maxItems: 5,
@@ -65,12 +61,21 @@ export class TweetFetcherApify implements TweetFetcher {
             const fullResponse = await this.callProcess(this.logger, 'apify', ['call', this.actorId, '-i', JSON.stringify(input), '-o'])
             // This is hacky, but we broke :c
             const startOfJSON = fullResponse.indexOf('[{')
-            const jsonResponse = fullResponse.substring(startOfJSON)
+            const tweets = JSON.parse(fullResponse.substring(startOfJSON))
+            if (!Array.isArray(tweets)) {
+                throw new Error(`Failed to correctly parse tweets, ${tweets}`)
+            }
 
-            return JSON.parse(jsonResponse)
+            this.logger.info({ accountId, tweetCount: tweets.length }, 'Successfully fetched tweets')
+
+            await this.db.insertTweets(accountId, tweets)
         } catch (error) {
             console.error('Error fetching tweets from Apify:', error)
             throw error
         }
     }
+}
+
+export const newTweetFetcherApify = (logger: Logger, apiToken: string, db: DatabaseConnector) => {
+    return new TweetFetcherApify(logger, apiToken, db)
 }
