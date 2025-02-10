@@ -25,6 +25,7 @@
   "homepage": "https://github.com/sadvazha/twitterer#readme",
   "dependencies": {
     "@twitterer/service-toolkit": "file:../libs/service-toolkit",
+    "apify-cli": "^0.21.1",
     "axios": "^1.7.9",
     "express": "^4.21.2",
     "pino": "^9.6.0"

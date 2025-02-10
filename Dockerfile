@@ -5,12 +5,12 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
-COPY ./services/api/package*.json ./
+COPY ./package*.json ./
 RUN npm install
 
 # Copy source code
-COPY ./services/api/tsconfig.json ./
-COPY ./services/api/src ./src
+COPY ./tsconfig.json ./
+COPY ./src ./src
 
 # Build the application
 RUN npm run build
@@ -23,7 +23,7 @@ WORKDIR /app
 
 # Copy necessary files from the builder stage
 COPY --from=builder /app/dist ./dist
-COPY ./services/api/package*.json ./
+COPY ./package*.json ./
 
 # Install only production dependencies
 RUN npm install --production

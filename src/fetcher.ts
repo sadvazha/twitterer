@@ -58,8 +58,8 @@ export class TweetFetcherApify implements TweetFetcher {
             }
 
             // Since API is not available in a free tier i am using CLI to fetch tweets
-            await this.callProcess(this.logger, 'apify', ['login', '-t', this.apiToken])
-            const fullResponse = await this.callProcess(this.logger, 'apify', ['call', this.actorId, '-i', JSON.stringify(input), '-o'])
+            await this.callProcess(this.logger, 'npx', ['apify', 'login', '-t', this.apiToken])
+            const fullResponse = await this.callProcess(this.logger, 'npx', ['apify', 'call', this.actorId, '-i', JSON.stringify(input), '-o'])
             // This is hacky, but we broke :c
             const startOfJSON = fullResponse.indexOf('[{')
             const tweetsRawString = fullResponse.substring(startOfJSON)
