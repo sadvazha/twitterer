@@ -1,18 +1,21 @@
 import { Logger } from './libs/service-toolkit'
-import { AccountInfo, Tweet } from './types'
+import { Account, Analysis, Tweet } from './types'
 
 
 export interface DatabaseConnector {
     insertTweets(accountId: string, tweets: Tweet[]): Promise<void>
     getTweets(accountId: string): Promise<Tweet[]>
-    insertAccountInfo(accountId: string, accpuntInfo: AccountInfo): Promise<void>
-    getAccountInfo(accountId: string): Promise<AccountInfo>
+    insertAccount(accountId: string, account: Account): Promise<void>
+    getAccount(accountId: string): Promise<Account>
+    insertAnalysis(accountId: string, accpuntInfo: Analysis): Promise<void>
+    getAnalysis(accountId: string): Promise<Analysis>
 }
 
-class MockDatabaseConnector {
+class MockDatabaseConnector implements DatabaseConnector {
     storage = {
         tweets: {} as Record<string, Tweet[]>,
-        accountInfo: {} as Record<string, AccountInfo>,
+        accounts: {} as Record<string, Account>,
+        accountInfo: {} as Record<string, Analysis>,
     }
 
     constructor(readonly logger: Logger) {}
@@ -32,12 +35,27 @@ class MockDatabaseConnector {
         return tweets
     }
 
-    async insertAccountInfo(accountId: string, accountInfo: AccountInfo): Promise<void> {
-        this.logger.info({ accountId, accountInfo }, 'Inserting accountInfo')
-        this.storage.accountInfo[accountId] = accountInfo
+    async insertAccount(accountId: string, account: Account): Promise<void> {
+        this.logger.info({ accountId, account }, 'Inserting account')
+        this.storage.accounts[accountId] = account
     }
 
-    async getAccountInfo(accountId: string): Promise<AccountInfo> {
+    async getAccount(accountId: string): Promise<Account> {
+        this.logger.info({ accountId }, 'Fetching account')
+        const account = this.storage.accounts[accountId]
+        if (!account) {
+            throw new Error('No account')
+        }
+
+        return account
+    }
+
+    async insertAnalysis(accountId: string, analysis: Analysis): Promise<void> {
+        this.logger.info({ accountId, accountInfo: analysis }, 'Inserting accountInfo')
+        this.storage.accountInfo[accountId] = analysis
+    }
+
+    async getAnalysis(accountId: string): Promise<Analysis> {
         const accountInfo = this.storage.accountInfo[accountId]
         if (!accountInfo) {
             throw new Error('No tweets')
@@ -47,6 +65,6 @@ class MockDatabaseConnector {
     }
 }
 
-export const newMockDatabaseConnector = (logger: Logger) => {
+export const newMockDatabaseConnector = (logger: Logger): DatabaseConnector => {
     return new MockDatabaseConnector(logger)
 }

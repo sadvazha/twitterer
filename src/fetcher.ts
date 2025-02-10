@@ -1,6 +1,7 @@
 import { Logger } from './libs/service-toolkit'
 import { spawn } from 'child_process'
 import { DatabaseConnector } from './database_connector'
+import { Account, Tweet } from './types'
 
 
 export interface TweetFetcher {
@@ -51,7 +52,7 @@ export class TweetFetcherApify implements TweetFetcher {
             this.logger.info({ accountId }, 'Fetching tweets for account')
             const input = {
                 author: accountId,
-                maxItems: 5,
+                maxItems: 10, // Limited by API (free tier)
                 sort: 'Latest',
                 twitterHandles: [accountId],
             }
@@ -61,17 +62,61 @@ export class TweetFetcherApify implements TweetFetcher {
             const fullResponse = await this.callProcess(this.logger, 'apify', ['call', this.actorId, '-i', JSON.stringify(input), '-o'])
             // This is hacky, but we broke :c
             const startOfJSON = fullResponse.indexOf('[{')
-            const tweets = JSON.parse(fullResponse.substring(startOfJSON))
-            if (!Array.isArray(tweets)) {
-                throw new Error(`Failed to correctly parse tweets, ${tweets}`)
+            const tweetsRawString = fullResponse.substring(startOfJSON)
+            const tweetsRaw = JSON.parse(tweetsRawString)
+            if (!Array.isArray(tweetsRaw)) {
+                throw new Error(`Failed to correctly parse tweets, ${tweetsRaw}`)
             }
+            const account = this.transformAccountData(tweetsRaw[0], tweetsRaw.length)
+            const tweets = this.transformTweetData(account, tweetsRaw)
 
-            this.logger.info({ accountId, tweetCount: tweets.length }, 'Successfully fetched tweets')
+            this.logger.info({ accountId, tweetCount: tweetsRaw.length }, 'Successfully fetched tweets')
 
-            await this.db.insertTweets(accountId, tweets)
+            await Promise.all([
+                this.db.insertAccount(accountId, account),
+                this.db.insertTweets(accountId, tweets)
+            ])
         } catch (error) {
             console.error('Error fetching tweets from Apify:', error)
             throw error
+        }
+    }
+
+    formatDate(dateStr: string) { return new Date(dateStr).toISOString() }
+
+    transformTweetData(author: Account, rawTweets: any[]): Tweet[] {
+        return rawTweets.map(tweet => ({
+            text: tweet.fullText,
+            createdAt: this.formatDate(tweet.createdAt),
+            engagement: {
+                retweets: tweet.retweetCount,
+                replies: tweet.replyCount,
+                likes: tweet.likeCount,
+                quotes: tweet.quoteCount,
+                views: tweet.viewCount,
+                bookmarks: tweet.bookmarkCount
+            },
+            type: tweet.isRetweet ? "retweet" : tweet.isQuote ? "quote" : tweet.isReply ? "reply" : "tweet",
+            hashtags: tweet.entities.hashtags.map((h: any) => h.text) || [],
+            mentions: tweet.entities.user_mentions.map((m: any) => m.screen_name) || [],
+            media: !!tweet.extendedEntities?.media,
+            contains_links: tweet.entities.urls.length > 0,
+            self_promotion: tweet.entities.user_mentions.some((m: any) => m.screen_name === author.username),
+            tweet_location: tweet.place?.name || null
+        }))
+    }
+
+    transformAccountData(rawTweet: Record<string, any>, tweetCount: number): Account {
+        const author = rawTweet?.author || {};
+        return {
+            username: author.userName || "",
+            name: author.name || "",
+            bio: author.description || "",
+            followers: author.followers || 0,
+            following: author.following || 0,
+            location: author.location || "",
+            account_created_at: this.formatDate(author.createdAt || ""),
+            tweets_analyzed: tweetCount
         }
     }
 }

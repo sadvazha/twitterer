@@ -20,7 +20,7 @@ export const getRouteRegistrar = (
             await fetcher.fetch(accountId)
             await analyzer.analyze(accountId)
 
-            res.status(201).end(JSON.stringify(await db.getAccountInfo(accountId)))
+            res.status(201).end(JSON.stringify(await db.getAnalysis(accountId)))
         })
     }
 }
