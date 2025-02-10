@@ -1,2 +1,2 @@
 # twitterer
-Analyze twitter accounts by ChatGPT prompts :)
+Analyze twitter accounts utilizing OpenAI API :)
